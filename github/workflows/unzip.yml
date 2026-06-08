@@ -1,0 +1,45 @@
+name: Extract Template and Deploy
+
+on:
+  workflow_dispatch: # Allows you to run this manually with a button click
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  extract_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Unzip Template Files
+        run: |
+          # Create a temporary directory and extract the ZIP
+          mkdir temp_extract
+          unzip Tailstore-main.zip -d temp_extract
+          
+          # Move everything from inside the unzipped folder into the main repository directory
+          # This will safely overwrite old files and add the missing subfolders (assets, css, etc.)
+          cp -r temp_extract/Tailstore-main/* . || cp -r temp_extract/* .
+          
+          # Clean up the temporary folder
+          rm -rf temp_extract
+
+      - name: Commit and Push Extracted Folders
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Automated unzip: Extracted all subfolders and assets" || exit 0
+          git push origin main
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
