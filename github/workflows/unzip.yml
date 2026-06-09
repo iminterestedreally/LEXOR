@@ -1,7 +1,10 @@
 name: Extract Template and Deploy
 
+# This tells GitHub to run the script automatically right NOW when you hit save
 on:
-  workflow_dispatch: # Allows you to run this manually with a button click
+  push:
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -17,15 +20,9 @@ jobs:
 
       - name: Unzip Template Files
         run: |
-          # Create a temporary directory and extract the ZIP
           mkdir temp_extract
           unzip Tailstore-main.zip -d temp_extract
-          
-          # Move everything from inside the unzipped folder into the main repository directory
-          # This will safely overwrite old files and add the missing subfolders (assets, css, etc.)
           cp -r temp_extract/Tailstore-main/* . || cp -r temp_extract/* .
-          
-          # Clean up the temporary folder
           rm -rf temp_extract
 
       - name: Commit and Push Extracted Folders
